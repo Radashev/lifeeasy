@@ -1,7 +1,35 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+
+# Virtual environment
+.venv/
+
+# Environment files
 .env
 .env.docker
+.env.prod
+
+# IDE
 .idea/
+.vscode/
+
+# Testing
 .pytest_cache/
+.coverage
+htmlcov/
+
+# Type checkers
+.mypy_cache/
+.ruff_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Alembic
+*.sqlite3

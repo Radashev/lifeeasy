@@ -11,7 +11,7 @@ def test_root():
 
     assert response.status_code == 200
     assert response.json() == {
-        "app_name": "DevOps Practice",
+        "app_name": "LifeEasy",
         "version": "1.0.0",
         "debug": True,
     }

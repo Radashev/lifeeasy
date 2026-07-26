@@ -1,6 +1,9 @@
 services:
   api:
-    build: .
+    build:
+      context: .
+      target: development
+
     container_name: lifeeasy-api
 
     restart: unless-stopped
@@ -10,6 +13,12 @@ services:
 
     env_file:
       - .env.docker
+
+    volumes:
+      - ./app:/app/app
+      - ./tests:/app/tests
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini
 
     depends_on:
       - postgres
