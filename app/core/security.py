@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-from app.core.config import settings
 from jose import JWTError, jwt
 from pwdlib import PasswordHash
 
+from app.core.config import settings
 
 password_hash = PasswordHash.recommended()
 
@@ -20,9 +20,7 @@ def verify_password(password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(subject: str) -> str:
-    expires_at = datetime.now(timezone.utc) + timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    expires_at = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     payload = {
         "sub": subject,
@@ -43,5 +41,5 @@ def decode_access_token(token: str) -> dict:
             settings.secret_key,
             algorithms=[ALGORITHM],
         )
-    except JWTError:
-        raise ValueError("Invalid or expired token")
+    except JWTError as error:
+        raise ValueError("Invalid or expired token") from error

@@ -1,12 +1,7 @@
 from fastapi.testclient import TestClient
 
-from app.main import app
 
-
-client = TestClient(app)
-
-
-def test_root():
+def test_root(client: TestClient):
     response = client.get("/")
 
     assert response.status_code == 200
@@ -17,21 +12,21 @@ def test_root():
     }
 
 
-def test_health():
+def test_health(client: TestClient):
     response = client.get("/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
-def test_assistant_message():
+def test_assistant_message(client: TestClient):
     response = client.post(
         "/assistant/message",
         json={
             "user_id": "13",
             "channel": "whatsapp",
             "text": "Remind me to call my wife",
-            "session_id": "session-001"
+            "session_id": "session-001",
         },
     )
 

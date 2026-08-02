@@ -1,10 +1,9 @@
-from fastapi import HTTPException
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import UserAlreadyExistsError
 from app.db.postgres import get_session
 from app.repositories.user_repository import UserRepository
-from app.core.exceptions import UserAlreadyExistsError
 from app.schemas.user import UserCreate, UserResponse
 from app.services.user_service import UserService
 
@@ -33,6 +32,6 @@ async def create_user(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="User with this email already exists",
-        )
+        ) from None
 
     return UserResponse.model_validate(user)

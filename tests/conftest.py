@@ -1,8 +1,10 @@
-import asyncio
-import sys
+import pytest
+from fastapi.testclient import TestClient
+
+from app.main import app
 
 
-if sys.platform == "win32":
-    asyncio.set_event_loop_policy(
-        asyncio.WindowsSelectorEventLoopPolicy()
-    )
+@pytest.fixture(scope="session")
+def client() -> TestClient:
+    with TestClient(app) as test_client:
+        yield test_client
