@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
+from app.models.user_role import UserRole
 
 
 class UserRepository:
@@ -18,11 +19,28 @@ class UserRepository:
 
         return result.scalar_one_or_none()
 
+    async def get_all(self) -> list[User]:
+        result = await self.session.execute(select(User).order_by(User.id))
+
+        return list(result.scalars().all())
+
+    async def update_role(
+            self,
+            user: User,
+            role: UserRole,
+    ) -> User:
+        user.role = role
+
+        await self.session.commit()
+        await self.session.refresh(user)
+
+        return user
+
     async def create(
-        self,
-        name: str,
-        email: str,
-        hashed_password: str,
+            self,
+            name: str,
+            email: str,
+            hashed_password: str,
     ) -> User:
         user = User(
             name=name,
