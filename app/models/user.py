@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.user_role import UserRole
 
+if TYPE_CHECKING:
+    from app.models.note import Note
 
 class User(Base):
     __tablename__ = "users"
@@ -39,4 +43,9 @@ class User(Base):
         ),
         nullable=False,
         default=UserRole.USER,
+    )
+
+    notes: Mapped[list["Note"]] = relationship(
+        back_populates="owner",
+        cascade="all, delete-orphan",
     )
