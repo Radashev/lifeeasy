@@ -9,4 +9,5 @@ class UserNotFoundError(Exception):
 class CannotChangeRootRoleError(Exception):
     pass
 
-
+class NoteNotFoundError(Exception):
+    pass

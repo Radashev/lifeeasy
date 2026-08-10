@@ -280,3 +280,258 @@ def test_user_cannot_get_all_notes(client: TestClient) -> None:
     assert response.json() == {
         "detail": "Insufficient permissions",
     }
+
+def test_user_can_get_own_note_by_id(client: TestClient) -> None:
+    root_token = login_and_get_token(
+        client=client,
+        email=settings.root_email,
+        password=settings.root_password,
+    )
+
+    user_email = f"user-{uuid4()}@example.com"
+    password = "StrongPassword123!"
+
+    user_response = client.post(
+        "/users/",
+        json={
+            "name": "Note Owner",
+            "email": user_email,
+            "password": password,
+        },
+        headers={
+            "Authorization": f"Bearer {root_token}",
+        },
+    )
+
+    assert user_response.status_code == 201, user_response.text
+
+    user_token = login_and_get_token(
+        client=client,
+        email=user_email,
+        password=password,
+    )
+
+    create_response = client.post(
+        "/notes/",
+        json={
+            "title": "My detailed note",
+            "content": "Private details",
+        },
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert create_response.status_code == 201, create_response.text
+
+    note_id = create_response.json()["id"]
+
+    response = client.get(
+        f"/notes/{note_id}",
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["id"] == note_id
+    assert response.json()["title"] == "My detailed note"
+
+
+
+def test_user_cannot_get_other_users_note_by_id(client: TestClient) -> None:
+    root_token = login_and_get_token(
+        client=client,
+        email=settings.root_email,
+        password=settings.root_password,
+    )
+
+    password = "StrongPassword123!"
+
+    user_a_email = f"user-a-{uuid4()}@example.com"
+    user_b_email = f"user-b-{uuid4()}@example.com"
+
+    for name, email in (
+        ("User A", user_a_email),
+        ("User B", user_b_email),
+    ):
+        response = client.post(
+            "/users/",
+            json={
+                "name": name,
+                "email": email,
+                "password": password,
+            },
+            headers={
+                "Authorization": f"Bearer {root_token}",
+            },
+        )
+        assert response.status_code == 201, response.text
+
+    user_a_token = login_and_get_token(
+        client=client,
+        email=user_a_email,
+        password=password,
+    )
+
+    user_b_token = login_and_get_token(
+        client=client,
+        email=user_b_email,
+        password=password,
+    )
+
+    create_response = client.post(
+        "/notes/",
+        json={
+            "title": "User A secret",
+            "content": "Only User A should read this.",
+        },
+        headers={
+            "Authorization": f"Bearer {user_a_token}",
+        },
+    )
+
+    assert create_response.status_code == 201, create_response.text
+
+    note_id = create_response.json()["id"]
+
+    response = client.get(
+        f"/notes/{note_id}",
+        headers={
+            "Authorization": f"Bearer {user_b_token}",
+        },
+    )
+
+    assert response.status_code == 404, response.text
+    assert response.json() == {
+        "detail": "Note not found",
+    }
+
+
+def test_user_can_update_own_note(client: TestClient) -> None:
+    root_token = login_and_get_token(
+        client=client,
+        email=settings.root_email,
+        password=settings.root_password,
+    )
+
+    user_email = f"user-{uuid4()}@example.com"
+    password = "StrongPassword123!"
+
+    user_response = client.post(
+        "/users/",
+        json={
+            "name": "Note Editor",
+            "email": user_email,
+            "password": password,
+        },
+        headers={
+            "Authorization": f"Bearer {root_token}",
+        },
+    )
+
+    assert user_response.status_code == 201, user_response.text
+
+    user_token = login_and_get_token(
+        client=client,
+        email=user_email,
+        password=password,
+    )
+
+    create_response = client.post(
+        "/notes/",
+        json={
+            "title": "Old title",
+            "content": "Old content",
+        },
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert create_response.status_code == 201, create_response.text
+
+    note_id = create_response.json()["id"]
+
+    response = client.patch(
+        f"/notes/{note_id}",
+        json={
+            "title": "New title",
+            "content": "New content",
+        },
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+
+    data = response.json()
+
+    assert data["id"] == note_id
+    assert data["title"] == "New title"
+    assert data["content"] == "New content"
+
+
+def test_user_can_delete_own_note(client: TestClient) -> None:
+    root_token = login_and_get_token(
+        client=client,
+        email=settings.root_email,
+        password=settings.root_password,
+    )
+
+    user_email = f"user-{uuid4()}@example.com"
+    password = "StrongPassword123!"
+
+    user_response = client.post(
+        "/users/",
+        json={
+            "name": "Note Deleter",
+            "email": user_email,
+            "password": password,
+        },
+        headers={
+            "Authorization": f"Bearer {root_token}",
+        },
+    )
+
+    assert user_response.status_code == 201, user_response.text
+
+    user_token = login_and_get_token(
+        client=client,
+        email=user_email,
+        password=password,
+    )
+
+    create_response = client.post(
+        "/notes/",
+        json={
+            "title": "Delete me",
+            "content": "This note will be deleted.",
+        },
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert create_response.status_code == 201, create_response.text
+
+    note_id = create_response.json()["id"]
+
+    delete_response = client.delete(
+        f"/notes/{note_id}",
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert delete_response.status_code == 204
+
+    get_response = client.get(
+        f"/notes/{note_id}",
+        headers={
+            "Authorization": f"Bearer {user_token}",
+        },
+    )
+
+    assert get_response.status_code == 404
