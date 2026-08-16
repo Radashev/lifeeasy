@@ -9,5 +9,5 @@ __pycache__
 *.pyd
 .env
 .env.docker
-tests
+
 README.md

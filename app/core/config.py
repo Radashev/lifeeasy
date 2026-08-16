@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     postgres_user: str
     postgres_password: str
 
+    secret_key: str
+
+    root_name: str
+    root_email: str
+    root_password: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
