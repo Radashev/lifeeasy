@@ -1,16 +1,18 @@
+import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import get_current_user
-from app.core.exceptions import NoteNotFoundError
 from app.db.postgres import get_session
 from app.models.user import User
 from app.repositories.note_repository import NoteRepository
 from app.schemas.note import NoteCreate, NoteResponse, NoteUpdate
 from app.security.authorization import require_root
 from app.services.note_service import NoteService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/notes",
@@ -35,6 +37,12 @@ async def create_note(
         title=note_data.title,
         content=note_data.content,
         owner_id=current_user.id,
+    )
+
+    logger.info(
+        "Note created: note_id=%s owner_id=%s",
+        note.id,
+        note.owner_id,
     )
 
     return NoteResponse.model_validate(note)
@@ -92,16 +100,11 @@ async def get_note(
     repository = NoteRepository(session)
     service = NoteService(repository)
 
-    try:
-        note = await service.get_note(
+
+    note = await service.get_note(
             note_id=note_id,
             current_user=current_user,
         )
-    except NoteNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found",
-        ) from None
 
     return NoteResponse.model_validate(note)
 
@@ -119,18 +122,19 @@ async def update_note(
     repository = NoteRepository(session)
     service = NoteService(repository)
 
-    try:
-        note = await service.update_note(
-            note_id=note_id,
-            current_user=current_user,
-            title=note_data.title,
-            content=note_data.content,
-        )
-    except NoteNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found",
-        ) from None
+
+    note = await service.update_note(
+        note_id=note_id,
+        current_user=current_user,
+        title=note_data.title,
+        content=note_data.content,
+    )
+    logger.info(
+        "Note updated: note_id=%s owner_id=%s",
+        note.id,
+        note.owner_id,
+    )
+
 
     return NoteResponse.model_validate(note)
 
@@ -147,13 +151,13 @@ async def delete_note(
     repository = NoteRepository(session)
     service = NoteService(repository)
 
-    try:
-        await service.delete_note(
-            note_id=note_id,
-            current_user=current_user,
-        )
-    except NoteNotFoundError:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Note not found",
-        ) from None
+
+    await service.delete_note(
+        note_id=note_id,
+        current_user=current_user,
+    )
+    logger.info(
+        "Note deleted: note_id=%s user_id=%s",
+        note_id,
+        current_user.id,
+    )
