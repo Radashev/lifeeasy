@@ -12,3 +12,6 @@ class CannotChangeRootRoleError(Exception):
 
 class NoteNotFoundError(Exception):
     pass
+
+class ReminderNotFoundError(Exception):
+    pass
