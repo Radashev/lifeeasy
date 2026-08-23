@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
+from app.models.reminder_status import ReminderStatus
+
 
 class ReminderCreate(BaseModel):
     title: str
@@ -16,6 +18,7 @@ class ReminderResponse(BaseModel):
     title: str
     description: str | None
     remind_at: datetime
+    status: ReminderStatus
     owner_id: int
     created_at: datetime
     updated_at: datetime

@@ -15,3 +15,6 @@ class NoteNotFoundError(Exception):
 
 class ReminderNotFoundError(Exception):
     pass
+
+class ReminderCannotBeCancelledError(Exception):
+    pass

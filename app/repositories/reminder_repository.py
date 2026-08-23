@@ -80,3 +80,12 @@ class ReminderRepository:
     ) -> None:
         await self.session.delete(reminder)
         await self.session.commit()
+
+    async def save(
+            self,
+            reminder: Reminder,
+    ) -> Reminder:
+        await self.session.commit()
+        await self.session.refresh(reminder)
+
+        return reminder
