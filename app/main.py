@@ -10,9 +10,14 @@ from app.api.users import router as users_router
 from app.core.config import settings
 from app.core.exception_handlers import (
     note_not_found_handler,
+    reminder_cannot_be_cancelled_handler,
     reminder_not_found_handler,
 )
-from app.core.exceptions import NoteNotFoundError, ReminderNotFoundError
+from app.core.exceptions import (
+    NoteNotFoundError,
+    ReminderCannotBeCancelledError,
+    ReminderNotFoundError,
+)
 from app.core.logging import setup_logging
 
 setup_logging()
@@ -28,6 +33,11 @@ app.add_exception_handler(
 app.add_exception_handler(
     ReminderNotFoundError,
     reminder_not_found_handler,
+)
+
+app.add_exception_handler(
+    ReminderCannotBeCancelledError,
+    reminder_cannot_be_cancelled_handler,
 )
 
 @app.get("/")

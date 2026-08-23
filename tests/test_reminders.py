@@ -37,6 +37,7 @@ def test_root_can_create_reminder(client: TestClient) -> None:
     assert data["owner_id"]
     assert data["id"]
     assert data["remind_at"]
+    assert data["status"] == "pending"
 
 
 def test_user_sees_only_own_reminders(client: TestClient) -> None:
@@ -553,3 +554,87 @@ def test_user_cannot_delete_other_users_reminder(
 
     assert get_response.status_code == 200
     assert get_response.json()["id"] == reminder_id
+
+
+def test_user_can_cancel_pending_reminder(client: TestClient) -> None:
+    token = login_and_get_token(
+        client=client,
+        email=settings.root_email,
+        password=settings.root_password,
+    )
+
+    remind_at = datetime.now(UTC) + timedelta(hours=1)
+
+    create_response = client.post(
+        "/reminders/",
+        json={
+            "title": "Reminder to cancel",
+            "description": "Cancel test",
+            "remind_at": remind_at.isoformat(),
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert create_response.status_code == 201, create_response.text
+
+    reminder = create_response.json()
+
+    assert reminder["status"] == "pending"
+
+    reminder_id = reminder["id"]
+
+    cancel_response = client.post(
+        f"/reminders/{reminder_id}/cancel",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert cancel_response.status_code == 200, cancel_response.text
+
+    cancelled_reminder = cancel_response.json()
+
+    assert cancelled_reminder["id"] == reminder_id
+    assert cancelled_reminder["status"] == "cancelled"
+
+
+def test_cancelled_reminder_cannot_be_cancelled_again(
+    client: TestClient,
+) -> None:
+    token = login_and_get_token(
+        client=client,
+        email=settings.root_email,
+        password=settings.root_password,
+    )
+
+    remind_at = datetime.now(UTC) + timedelta(hours=1)
+
+    create_response = client.post(
+        "/reminders/",
+        json={
+            "title": "Cancel twice test",
+            "description": "State transition test",
+            "remind_at": remind_at.isoformat(),
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert create_response.status_code == 201, create_response.text
+
+    reminder_id = create_response.json()["id"]
+
+    first_cancel_response = client.post(
+        f"/reminders/{reminder_id}/cancel",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert first_cancel_response.status_code == 200
+    assert first_cancel_response.json()["status"] == "cancelled"
+
+    second_cancel_response = client.post(
+        f"/reminders/{reminder_id}/cancel",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert second_cancel_response.status_code == 409
+    assert second_cancel_response.json() == {
+        "detail": "Reminder cannot be cancelled",
+    }

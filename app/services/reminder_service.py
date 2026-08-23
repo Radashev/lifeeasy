@@ -1,7 +1,11 @@
 from datetime import datetime
 
-from app.core.exceptions import ReminderNotFoundError
+from app.core.exceptions import (
+    ReminderCannotBeCancelledError,
+    ReminderNotFoundError,
+)
 from app.models.reminder import Reminder
+from app.models.reminder_status import ReminderStatus
 from app.models.user import User
 from app.repositories.reminder_repository import ReminderRepository
 
@@ -80,3 +84,22 @@ class ReminderService:
         )
 
         await self.repository.delete(reminder)
+
+    async def cancel_reminder(
+            self,
+            reminder_id: int,
+            current_user: User,
+    ) -> Reminder:
+        reminder = await self.get_reminder(
+            reminder_id=reminder_id,
+            current_user=current_user,
+        )
+
+        if reminder.status != ReminderStatus.PENDING:
+            raise ReminderCannotBeCancelledError()
+
+        reminder.status = ReminderStatus.CANCELLED
+
+        await self.repository.save(reminder)
+
+        return reminder

@@ -123,3 +123,23 @@ async def delete_reminder(
         reminder_id=reminder_id,
         current_user=current_user,
     )
+
+
+@router.post(
+    "/{reminder_id}/cancel",
+    response_model=ReminderResponse,
+)
+async def cancel_reminder(
+    reminder_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+) -> ReminderResponse:
+    repository = ReminderRepository(session)
+    service = ReminderService(repository)
+
+    reminder = await service.cancel_reminder(
+        reminder_id=reminder_id,
+        current_user=current_user,
+    )
+
+    return ReminderResponse.model_validate(reminder)
