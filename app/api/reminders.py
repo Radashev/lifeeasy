@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import Annotated
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,11 +9,13 @@ from app.api.dependencies import get_current_user
 from app.db.postgres import get_session
 from app.models.user import User
 from app.repositories.reminder_repository import ReminderRepository
+from app.schemas.ai import ReminderTextRequest
 from app.schemas.reminder import (
     ReminderCreate,
     ReminderResponse,
     ReminderUpdate,
 )
+from app.services.ai_reminder_service import AIReminderService
 from app.services.reminder_service import ReminderService
 
 router = APIRouter(
@@ -61,6 +65,31 @@ async def get_reminders(
         ReminderResponse.model_validate(reminder)
         for reminder in reminders
     ]
+
+@router.post(
+    "/from-text",
+    response_model=ReminderResponse,
+)
+async def create_reminder_from_text(
+    request: ReminderTextRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: AsyncSession = Depends(get_session),
+) -> ReminderResponse:
+    repository = ReminderRepository(session)
+    reminder_service = ReminderService(repository)
+    ai_service = AIReminderService(reminder_service)
+
+    current_datetime = datetime.now(
+        ZoneInfo("Europe/Warsaw")
+    )
+
+    reminder = await ai_service.create_from_text(
+        text=request.text,
+        current_datetime=current_datetime,
+        owner_id=current_user.id,
+    )
+
+    return ReminderResponse.model_validate(reminder)
 
 
 @router.get(
