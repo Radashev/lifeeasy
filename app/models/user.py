@@ -8,7 +8,9 @@ from app.db.base import Base
 from app.models.user_role import UserRole
 
 if TYPE_CHECKING:
+    from app.models.channel_account import ChannelAccount
     from app.models.note import Note
+
 
 class User(Base):
     __tablename__ = "users"
@@ -47,5 +49,10 @@ class User(Base):
 
     notes: Mapped[list["Note"]] = relationship(
         back_populates="owner",
+        cascade="all, delete-orphan",
+    )
+
+    channel_accounts: Mapped[list["ChannelAccount"]] = relationship(
+        back_populates="user",
         cascade="all, delete-orphan",
     )
