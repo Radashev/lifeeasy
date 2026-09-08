@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.api.assistant import router as assistant_router
 from app.api.auth import router as auth_router
 from app.api.authorization import router as authorization_router
+from app.api.channels import router as channels_router
 from app.api.health import router as health_router
 from app.api.notes import router as notes_router
 from app.api.reminders import router as reminders_router
@@ -40,6 +41,8 @@ app.add_exception_handler(
     reminder_cannot_be_cancelled_handler,
 )
 
+
+
 @app.get("/")
 def root():
     return {
@@ -56,3 +59,4 @@ app.include_router(auth_router)
 app.include_router(authorization_router)
 app.include_router(notes_router)
 app.include_router(reminders_router)
+app.include_router(channels_router)

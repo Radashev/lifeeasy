@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import decode_access_token
 from app.db.postgres import get_session
 from app.models.user import User
+from app.repositories.channel_link_token_repository import (
+    ChannelLinkTokenRepository,
+)
 from app.repositories.user_repository import UserRepository
+from app.services.channel_link_token_service import ChannelLinkTokenService
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/auth/login",
@@ -43,3 +47,12 @@ async def get_current_user(
         raise credentials_exception
 
     return user
+
+def get_channel_link_token_service(
+    session: AsyncSession = Depends(get_session),
+) -> ChannelLinkTokenService:
+    repository = ChannelLinkTokenRepository(session)
+
+    return ChannelLinkTokenService(
+        repository=repository,
+    )
