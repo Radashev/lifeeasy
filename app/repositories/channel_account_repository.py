@@ -37,7 +37,7 @@ class ChannelAccountRepository:
         )
 
         self.session.add(account)
-        await self.session.commit()
+        await self.session.flush()
         await self.session.refresh(account)
 
         return account

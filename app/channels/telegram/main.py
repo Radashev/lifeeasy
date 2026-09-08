@@ -3,6 +3,9 @@ import asyncio
 from aiogram import Dispatcher
 
 from app.channels.telegram.bot import bot
+from app.channels.telegram.handlers.link import (
+    router as link_router,
+)
 from app.channels.telegram.handlers.reminders import (
     router as reminders_router,
 )
@@ -15,7 +18,9 @@ async def main() -> None:
     dp = Dispatcher()
 
     dp.include_router(start_router)
+    dp.include_router(link_router)
     dp.include_router(reminders_router)
+
 
     await dp.start_polling(bot)
 
