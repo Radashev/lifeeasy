@@ -18,3 +18,17 @@ class ReminderNotFoundError(Exception):
 
 class ReminderCannotBeCancelledError(Exception):
     pass
+
+class ChannelAccountAlreadyLinkedError(Exception):
+    pass
+
+class ChannelLinkTokenInvalidError(Exception):
+    pass
+
+
+class ChannelLinkTokenExpiredError(Exception):
+    pass
+
+
+class ChannelLinkTokenAlreadyUsedError(Exception):
+    pass
