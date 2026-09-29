@@ -16,6 +16,10 @@ class UserResponse(BaseModel):
     name: str
     email: EmailStr
     role: UserRole
+    is_active: bool
 
 class UserRoleUpdate(BaseModel):
     role: UserRole
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool

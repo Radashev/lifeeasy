@@ -10,17 +10,25 @@ class CannotChangeRootRoleError(Exception):
     pass
 
 
+class CannotDeactivateRootError(Exception):
+    pass
+
+
 class NoteNotFoundError(Exception):
     pass
+
 
 class ReminderNotFoundError(Exception):
     pass
 
+
 class ReminderCannotBeCancelledError(Exception):
     pass
 
+
 class ChannelAccountAlreadyLinkedError(Exception):
     pass
+
 
 class ChannelLinkTokenInvalidError(Exception):
     pass

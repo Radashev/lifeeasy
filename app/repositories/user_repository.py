@@ -36,6 +36,18 @@ class UserRepository:
 
         return user
 
+    async def update_status(
+            self,
+            user: User,
+            is_active: bool,
+    ) -> User:
+        user.is_active = is_active
+
+        await self.session.commit()
+        await self.session.refresh(user)
+
+        return user
+
     async def create(
             self,
             name: str,
