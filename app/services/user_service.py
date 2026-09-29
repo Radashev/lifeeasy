@@ -1,5 +1,6 @@
 from app.core.exceptions import (
     CannotChangeRootRoleError,
+    CannotDeactivateRootError,
     UserAlreadyExistsError,
     UserNotFoundError,
 )
@@ -32,6 +33,24 @@ class UserService:
         return await self.repository.update_role(
             user=user,
             role=role,
+        )
+
+    async def update_user_status(
+            self,
+            user_id: int,
+            is_active: bool,
+    ) -> User:
+        user = await self.repository.get_by_id(user_id)
+
+        if user is None:
+            raise UserNotFoundError()
+
+        if user.role == UserRole.ROOT and not is_active:
+            raise CannotDeactivateRootError()
+
+        return await self.repository.update_status(
+            user=user,
+            is_active=is_active,
         )
 
     async def create_user(

@@ -47,6 +47,11 @@ class User(Base):
         default=UserRole.USER,
     )
 
+    is_active: Mapped[bool] = mapped_column(
+        default=True,
+        nullable=False,
+    )
+
     notes: Mapped[list["Note"]] = relationship(
         back_populates="owner",
         cascade="all, delete-orphan",

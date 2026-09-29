@@ -5,13 +5,19 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
     CannotChangeRootRoleError,
+    CannotDeactivateRootError,
     UserAlreadyExistsError,
     UserNotFoundError,
 )
 from app.db.postgres import get_session
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate, UserResponse, UserRoleUpdate
+from app.schemas.user import (
+    UserCreate,
+    UserResponse,
+    UserRoleUpdate,
+    UserStatusUpdate,
+)
 from app.security.authorization import require_admin, require_root
 from app.services.user_service import UserService
 
@@ -61,6 +67,34 @@ async def update_user_role(
             detail="ROOT role cannot be changed",
         ) from None
 
+@router.patch(
+    "/{user_id}/status",
+    response_model=UserResponse,
+)
+async def update_user_status(
+        user_id: int,
+        status_data: UserStatusUpdate,
+        _: Annotated[User, Depends(require_admin)],
+        session: AsyncSession = Depends(get_session),
+) -> User:
+    repository = UserRepository(session)
+    service = UserService(repository)
+
+    try:
+        return await service.update_user_status(
+            user_id=user_id,
+            is_active=status_data.is_active,
+        )
+    except UserNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        ) from None
+    except CannotDeactivateRootError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="ROOT user cannot be deactivated",
+        ) from None
 
 @router.post(
     "/",
