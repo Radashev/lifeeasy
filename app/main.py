@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.assistant import router as assistant_router
 from app.api.auth import router as auth_router
@@ -24,6 +25,16 @@ from app.core.logging import setup_logging
 setup_logging()
 
 app = FastAPI(title="LifeEasy")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 app.add_exception_handler(
